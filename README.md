@@ -1,7 +1,10 @@
 # MediCare — Web-Based Hospital Appointment & Telemedicine System
 
-> **Pre-print DOI:** [10.5281/zenodo.23235454](https://zenodo.org/records/23235454)  
-> **Journal Submission:** Submitted for peer review at *Sukkur IBA Journal of Computing and Mathematical Sciences* (SJCMS ID: 1912).
+> **Pre-print DOI:** [10.5281/zenodo.23239865](https://doi.org/10.5281/zenodo.23239865)  
+> **Journal Submission:** Submitted for peer review at *Sukkur IBA Journal of Computing and Mathematical Sciences* (SJCMS ID: 1912).  
+> **Source Code Repository:** [MediCare GitHub Repository](https://github.com/maazahmadyousafzai557-netizen/MediCare-Hospital-Management-System)
+
+---
 
 ## Overview
 MediCare is an integrated, multi-user healthcare platform engineered to address OPD congestion and regional medical access limitations. The system unifies appointment scheduling, real-time browser consultations, digital prescription handling, and local mobile payment verification.
