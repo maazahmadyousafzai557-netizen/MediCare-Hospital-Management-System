@@ -7,15 +7,22 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Read the exact requested path passed from vercel.json
-$path = isset($_GET['path']) ? trim($_GET['path'], '/') : '';
+// 1. Get requested path from query string or request URI
+$path = isset($_GET['path']) ? $_GET['path'] : '';
 
-// Remove query strings if present
+if (empty($path)) {
+    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+}
+
+// Clean leading slashes and 'api/' prefix if added by rewrite engine
+$path = ltrim($path, '/');
+$path = preg_replace('/^api\//', '', $path);
+
 if (($pos = strpos($path, '?')) !== false) {
     $path = substr($path, 0, $pos);
 }
 
-// 1. Landing Page / Home Page Handler
+// 2. Landing Page / Home Page Handler
 if (empty($path) || $path === 'index.php') {
     if (file_exists(__DIR__ . '/home.php')) {
         require __DIR__ . '/home.php';
@@ -46,7 +53,7 @@ if (empty($path) || $path === 'index.php') {
     exit();
 }
 
-// 2. Resolve requested target file path directly in api folder
+// 3. Resolve target file directly inside api folder (e.g. login.php, register.php)
 $target = __DIR__ . '/' . $path;
 
 if (!is_file($target) && is_file($target . '.php')) {
@@ -59,7 +66,7 @@ if (is_file($target)) {
     exit();
 }
 
-// 3. Fallback: Search inside subfolders (patient/, doctor/, admin/, db/)
+// 4. Fallback: Search inside subfolders (patient/, doctor/, admin/, db/)
 $subfolders = ['patient', 'doctor', 'admin', 'db'];
 foreach ($subfolders as $folder) {
     $sub_target = __DIR__ . '/' . $folder . '/' . $path;
@@ -73,7 +80,7 @@ foreach ($subfolders as $folder) {
     }
 }
 
-// 4. Page Not Found (404)
+// 5. Page Not Found (404)
 http_response_code(404);
 echo "<h2 style='text-align:center;margin-top:50px;font-family:sans-serif;color:red;'>404 - Page Not Found: " . htmlspecialchars($path) . "</h2>";
 ?>
