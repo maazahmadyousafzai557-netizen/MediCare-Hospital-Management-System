@@ -7,30 +7,22 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 1. Get requested path from query string or request URI
-$path = '';
+// Get clean requested route parameter from vercel.json
+$route = $_GET['route'] ?? '';
+$route = trim($route, '/');
 
-if (isset($_GET['path']) && $_GET['path'] !== '') {
-    $path = $_GET['path'];
-} else {
-    $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+// Clean query strings if appended in route parameter
+if (($pos = strpos($route, '?')) !== false) {
+    $route = substr($route, 0, $pos);
 }
 
-// Sanitize path
-$path = ltrim($path, '/');
-
-// Strip 'api/' prefix if Vercel prepends it
-if (strpos($path, 'api/') === 0) {
-    $path = substr($path, 4);
+// Strip leading 'api/' if present
+if (strpos($route, 'api/') === 0) {
+    $route = substr($route, 4);
 }
 
-// Remove query parameters if attached in path string
-if (($pos = strpos($path, '?')) !== false) {
-    $path = substr($path, 0, $pos);
-}
-
-// 2. Landing Page / Main Home Screen
-if (empty($path) || $path === 'index' || $path === 'index.php') {
+// 1. Landing Page / Main Home Screen Handler
+if (empty($route) || $route === 'index' || $route === 'index.php') {
     if (file_exists(__DIR__ . '/home.php')) {
         require __DIR__ . '/home.php';
         exit();
@@ -60,38 +52,40 @@ if (empty($path) || $path === 'index' || $path === 'index.php') {
     exit();
 }
 
-// 3. Resolve target file directly inside api folder (e.g. login.php, register.php)
-$target = __DIR__ . '/' . $path;
+// 2. Resolve requested target file directly inside api folder
+$target = __DIR__ . '/' . $route;
 
 if (!is_file($target) && is_file($target . '.php')) {
     $target = $target . '.php';
 }
 
+// 3. Fallback: Search inside subfolders (patient/, doctor/, admin/, db/)
+if (!is_file($target)) {
+    $subfolders = ['patient', 'doctor', 'admin', 'db'];
+    foreach ($subfolders as $folder) {
+        $sub_target = __DIR__ . '/' . $folder . '/' . $route;
+        if (!is_file($sub_target) && is_file($sub_target . '.php')) {
+            $sub_target = $sub_target . '.php';
+        }
+        if (is_file($sub_target)) {
+            $target = $sub_target;
+            break;
+        }
+    }
+}
+
+// 4. Serve file if found and adjust directory context for relative includes
 if (is_file($target)) {
     chdir(dirname($target));
     require $target;
     exit();
 }
 
-// 4. Fallback: Search inside subfolders (patient/, doctor/, admin/, db/)
-$subfolders = ['patient', 'doctor', 'admin', 'db'];
-foreach ($subfolders as $folder) {
-    $sub_target = __DIR__ . '/' . $folder . '/' . $path;
-    if (!is_file($sub_target) && is_file($sub_target . '.php')) {
-        $sub_target = $sub_target . '.php';
-    }
-    if (is_file($sub_target)) {
-        chdir(dirname($sub_target));
-        require $sub_target;
-        exit();
-    }
-}
-
-// 5. Page Not Found (404) with clear debug information
+// 5. Page Not Found (404)
 http_response_code(404);
 echo "<div style='text-align:center;margin-top:50px;font-family:sans-serif;'>";
 echo "<h2 style='color:red;'>404 - Page Not Found</h2>";
-echo "<p>Requested path: <strong>" . htmlspecialchars($path) . "</strong></p>";
+echo "<p>Requested path: <strong>" . htmlspecialchars($route) . "</strong></p>";
 echo "<a href='/'>Go to Home</a>";
 echo "</div>";
 ?>
