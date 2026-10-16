@@ -18,18 +18,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         if (password_verify($password, $user['password'])) {
-            // Save standard session variables
+            // Normalize role to lowercase
+            $db_role = strtolower(trim($user['role']));
+
             $_SESSION['user_id']   = $user['id'];
             $_SESSION['fullname']  = $user['fullname'];
-            $_SESSION['user_name'] = $user['fullname']; // Fallback for legacy UI
+            $_SESSION['user_name'] = $user['fullname'];
             $_SESSION['email']     = $user['email'];
-            $_SESSION['user_role'] = strtolower($user['role']);
-            $_SESSION['role']      = strtolower($user['role']); // Dual-key safety
+            $_SESSION['user_role'] = $db_role;
+            $_SESSION['role']      = $db_role;
 
-            // Direct role-based redirection
-            if ($_SESSION['user_role'] === 'admin') {
+            // Redirection based on database role
+            if ($db_role === 'admin') {
                 header("Location: admin_dashboard.php");
-            } elseif ($_SESSION['user_role'] === 'doctor') {
+            } elseif ($db_role === 'doctor') {
                 header("Location: doctor_dashboard.php");
             } else {
                 header("Location: dashboard.php");
