@@ -1,5 +1,12 @@
 <?php
-session_start();
+// Enable full error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Get clean requested URL path
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -51,7 +58,21 @@ if (is_file($target)) {
     exit();
 }
 
-// 4. 404 Fallback
+// 4. Fallback: Search inside subfolders (patient/, doctor/, admin/) if path doesn't specify it
+$subfolders = ['patient', 'doctor', 'admin', 'db'];
+foreach ($subfolders as $folder) {
+    $sub_target = __DIR__ . '/' . $folder . '/' . $uri;
+    if (!is_file($sub_target) && is_file($sub_target . '.php')) {
+        $sub_target = $sub_target . '.php';
+    }
+    if (is_file($sub_target)) {
+        chdir(dirname($sub_target));
+        require $sub_target;
+        exit();
+    }
+}
+
+// 5. 404 Fallback
 http_response_code(404);
-echo "<h2 style='text-align:center;margin-top:50px;font-family:sans-serif;'>404 - Page Not Found: " . htmlspecialchars($uri) . "</h2>";
+echo "<h2 style='text-align:center;margin-top:50px;font-family:sans-serif;color:red;'>404 - Page Not Found: " . htmlspecialchars($uri) . "</h2>";
 ?>
