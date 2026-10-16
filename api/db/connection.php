@@ -1,9 +1,9 @@
 <?php
 // Aiven Database Connection Details
-$host = "mysql-1dfe4216-maazahmadyousafzai557-2097.h.aivencloud.com";      // e.g., mysql-xxxx.aivencloud.com
-$port = 10616;                  // Aiven Port
+$host = "mysql-1dfe4216-maazahmadyousafzai557-2097.h.aivencloud.com";
+$port = 10616;
 $user = "avnadmin";
-$pass = "AVNS_zavSy6oFhai4v6sZRR8";  // Aiven Console se copy karke real password lagayein
+$pass = "AVNS_zavGy6oFha14v6sZRRB";
 $db   = "defaultdb";
 
 $conn = mysqli_init();
@@ -13,7 +13,7 @@ mysqli_ssl_set($conn, NULL, NULL, NULL, NULL, NULL);
 
 // Connect with SSL flag
 if (!@mysqli_real_connect($conn, $host, $user, $pass, $db, $port, NULL, MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT)) {
-    // Fallback if SSL verification bypassed connection is needed
+    // Fallback if SSL fails
     $conn = mysqli_connect($host, $user, $pass, $db, $port);
 }
 
