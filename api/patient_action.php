@@ -1,10 +1,10 @@
 <?php
 session_start();
-include '../db/connection.php';
-include '../db/email.php';
+include 'connection.php';
+include 'email.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header("Location: ../login.php");
+    header("Location: login.php");
     exit();
 }
 
@@ -69,7 +69,7 @@ if ($action === 'block') {
     <p>Dear <strong>" . $patient['fullname'] . "</strong>,</p>
     <p>Your account has been unblocked.
        You can login and book appointments again!</p>
-    <a href='http://localhost:8080/hospital_project/login.php'
+    <a href='https://medicare-hospital-management-system-sepia.vercel.app/login.php'
        style='display:block;background:#0d6efd;color:white;padding:14px;
               border-radius:8px;text-decoration:none;
               font-weight:bold;text-align:center;'>
