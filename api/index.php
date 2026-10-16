@@ -8,22 +8,29 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // 1. Get requested path from query string or request URI
-$path = isset($_GET['path']) ? $_GET['path'] : '';
+$path = '';
 
-if (empty($path)) {
-    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if (isset($_GET['path']) && $_GET['path'] !== '') {
+    $path = $_GET['path'];
+} else {
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 }
 
-// Clean leading slashes and 'api/' prefix if added by rewrite engine
+// Sanitize path
 $path = ltrim($path, '/');
-$path = preg_replace('/^api\//', '', $path);
 
+// Strip 'api/' prefix if Vercel prepends it
+if (strpos($path, 'api/') === 0) {
+    $path = substr($path, 4);
+}
+
+// Remove query parameters if attached in path string
 if (($pos = strpos($path, '?')) !== false) {
     $path = substr($path, 0, $pos);
 }
 
-// 2. Landing Page / Home Page Handler
-if (empty($path) || $path === 'index.php') {
+// 2. Landing Page / Main Home Screen
+if (empty($path) || $path === 'index' || $path === 'index.php') {
     if (file_exists(__DIR__ . '/home.php')) {
         require __DIR__ . '/home.php';
         exit();
@@ -80,7 +87,11 @@ foreach ($subfolders as $folder) {
     }
 }
 
-// 5. Page Not Found (404)
+// 5. Page Not Found (404) with clear debug information
 http_response_code(404);
-echo "<h2 style='text-align:center;margin-top:50px;font-family:sans-serif;color:red;'>404 - Page Not Found: " . htmlspecialchars($path) . "</h2>";
+echo "<div style='text-align:center;margin-top:50px;font-family:sans-serif;'>";
+echo "<h2 style='color:red;'>404 - Page Not Found</h2>";
+echo "<p>Requested path: <strong>" . htmlspecialchars($path) . "</strong></p>";
+echo "<a href='/'>Go to Home</a>";
+echo "</div>";
 ?>
