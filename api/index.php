@@ -3,25 +3,31 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Fix Vercel Serverless Session Storage
 if (session_status() === PHP_SESSION_NONE) {
+    $session_dir = '/tmp/sessions';
+    if (!file_exists($session_dir)) {
+        @mkdir($session_dir, 0777, true);
+    }
+    session_save_path($session_dir);
     session_start();
 }
 
-// Get clean requested route parameter from vercel.json
+// Get clean route parameter from vercel.json
 $route = $_GET['route'] ?? '';
 $route = trim($route, '/');
 
-// Clean query strings if appended in route parameter
+// Clean query strings if present
 if (($pos = strpos($route, '?')) !== false) {
     $route = substr($route, 0, $pos);
 }
 
-// Strip leading 'api/' if present
+// Strip leading 'api/' if prepended by Vercel
 if (strpos($route, 'api/') === 0) {
     $route = substr($route, 4);
 }
 
-// 1. Landing Page / Main Home Screen Handler
+// 1. Landing Page / Home Screen
 if (empty($route) || $route === 'index' || $route === 'index.php') {
     if (file_exists(__DIR__ . '/home.php')) {
         require __DIR__ . '/home.php';
@@ -52,14 +58,13 @@ if (empty($route) || $route === 'index' || $route === 'index.php') {
     exit();
 }
 
-// 2. Resolve requested target file directly inside api folder
+// 2. Direct match inside api folder
 $target = __DIR__ . '/' . $route;
-
 if (!is_file($target) && is_file($target . '.php')) {
     $target = $target . '.php';
 }
 
-// 3. Fallback: Search inside subfolders (patient/, doctor/, admin/, db/)
+// 3. Fallback search inside subfolders (patient/, doctor/, admin/, db/)
 if (!is_file($target)) {
     $subfolders = ['patient', 'doctor', 'admin', 'db'];
     foreach ($subfolders as $folder) {
@@ -74,18 +79,18 @@ if (!is_file($target)) {
     }
 }
 
-// 4. Serve file if found and adjust directory context for relative includes
+// 4. Render Target Page
 if (is_file($target)) {
     chdir(dirname($target));
     require $target;
     exit();
 }
 
-// 5. Page Not Found (404)
+// 5. 404 Fallback
 http_response_code(404);
 echo "<div style='text-align:center;margin-top:50px;font-family:sans-serif;'>";
 echo "<h2 style='color:red;'>404 - Page Not Found</h2>";
-echo "<p>Requested path: <strong>" . htmlspecialchars($route) . "</strong></p>";
+echo "<p>Requested: <strong>" . htmlspecialchars($route) . "</strong></p>";
 echo "<a href='/'>Go to Home</a>";
 echo "</div>";
 ?>
