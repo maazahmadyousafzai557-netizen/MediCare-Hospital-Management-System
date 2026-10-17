@@ -3,19 +3,19 @@
 $host = "mysql-1dfe4216-maazahmadyousafzai557-2097.h.aivencloud.com";
 $port = 10616;
 $user = "avnadmin";
-$pass = "AVNS_hiw64noz2J6_KL3ws6H"; // Aapka naya password
+$pass = "AVNS_hiw64noz2J6_KL3ws6H"; 
 $db   = "defaultdb";
 
-// Initialize MySQLi
+// Initialize Connection
 $conn = mysqli_init();
 
-// Set timeout to prevent hanging
+// Set timeouts
 mysqli_options($conn, MYSQLI_OPT_CONNECT_TIMEOUT, 10);
 
-// Aiven requires SSL, so we set the flag to use SSL but bypass certificate verification
+// Set SSL flag (Very important for Aiven Cloud)
 mysqli_ssl_set($conn, NULL, NULL, NULL, NULL, NULL);
 
-// Attempt connection
+// Connect
 $connected = @mysqli_real_connect(
     $conn, 
     $host, 
@@ -28,7 +28,6 @@ $connected = @mysqli_real_connect(
 );
 
 if (!$connected) {
-    // If it fails, print the exact reason
     die("Database Connection Failed: " . mysqli_connect_error());
 }
 ?>
